@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz — HQC Chapitre 4</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2129;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --border: #30363d;
+    --blue: #2e75b6;
+    --green: #3fb950;
+    --red: #f85149;
+    --yellow: #d29922;
+    --purple: #bc8cff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse 50% 40% at 15% 5%, rgba(46,117,182,0.2) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 50% at 85% 95%, rgba(188,140,255,0.1) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; position: relative; z-index: 5; }
+  .screen.active { display: block; }
+
+  /* ══════════════ START SCREEN ══════════════ */
+  #screen-start {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+  }
+
+  .start-card {
+    max-width: 640px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .start-badge {
+    display: inline-block;
+    padding: 6px 18px;
+    border-radius: 100px;
+    background: rgba(46,117,182,0.15);
+    border: 1px solid rgba(46,117,182,0.3);
+    color: #58a6ff;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+
+  .start-card h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 6vw, 58px);
+    font-weight: 900;
+    line-height: 1.05;
+    margin-bottom: 16px;
+  }
+
+  .start-card h1 em { font-style: normal; color: #58a6ff; }
+
+  .start-card p {
+    font-size: 17px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 40px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 40px;
+  }
+
+  .info-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 12px;
+    text-align: center;
+  }
+
+  .info-item .val {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: #58a6ff;
+  }
+
+  .info-item .lbl {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .mode-select {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .mode-card {
+    flex: 1;
+    padding: 16px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .mode-card:hover { border-color: rgba(88,166,255,0.5); }
+  .mode-card.selected { border-color: #58a6ff; background: rgba(88,166,255,0.08); }
+  .mode-card .mode-icon { font-size: 28px; margin-bottom: 8px; }
+  .mode-card .mode-name { font-size: 14px; font-weight: 700; }
+  .mode-card .mode-desc { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 32px;
+  }
+
+  .filter-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .filter-btn.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+  .start-btn {
+    width: 100%;
+    padding: 18px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, var(--blue), #1a5296);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 20px rgba(46,117,182,0.4);
+  }
+
+  .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(46,117,182,0.5); }
+
+  /* ══════════════ QUIZ SCREEN ══════════════ */
+  #screen-quiz { padding-bottom: 80px; }
+
+  .quiz-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(13,17,23,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+  }
+
+  .quiz-header-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+  }
+
+  .quit-btn {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .quit-btn:hover { background: rgba(248,81,73,0.15); color: var(--red); border-color: var(--red); }
+
+  .progress-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), #58a6ff);
+    border-radius: 10px;
+    transition: width 0.4s ease;
+  }
+
+  .quiz-counter {
+    font-size: 13px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .quiz-counter strong { color: var(--text); }
+
+  .quiz-score-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--green);
+    flex-shrink: 0;
+  }
+
+  /* Theme tag */
+  .theme-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+
+  .theme-tag.politique  { background: rgba(46,117,182,0.15); color: #58a6ff; border: 1px solid rgba(46,117,182,0.3); }
+  .theme-tag.autochtone { background: rgba(74,140,42,0.15); color: #7ee787; border: 1px solid rgba(74,140,42,0.3); }
+  .theme-tag.economie   { background: rgba(201,122,0,0.15); color: #f0a834; border: 1px solid rgba(201,122,0,0.3); }
+  .theme-tag.autres     { background: rgba(155,61,184,0.15); color: #bc8cff; border: 1px solid rgba(155,61,184,0.3); }
+
+  /* Diff badge */
+  .diff-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    margin-left: 8px;
+  }
+
+  .diff-badge.facile { background: rgba(63,185,80,0.15); color: var(--green); }
+  .diff-badge.moyen  { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .diff-badge.difficile { background: rgba(248,81,73,0.15); color: var(--red); }
+
+  /* Q card */
+  .q-container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .q-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 40px 32px;
+    margin-bottom: 20px;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  .q-text {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .option-btn {
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-family: inherit;
+    line-height: 1.4;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    border-color: rgba(88,166,255,0.5);
+    background: rgba(88,166,255,0.06);
+    transform: translateY(-1px);
+  }
+
+  .option-letter {
+    min-width: 28px; height: 28px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 800;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .option-btn.correct {
+    border-color: var(--green) !important;
+    background: rgba(63,185,80,0.12) !important;
+  }
+
+  .option-btn.correct .option-letter { background: var(--green); color: #000; }
+
+  .option-btn.wrong {
+    border-color: var(--red) !important;
+    background: rgba(248,81,73,0.1) !important;
+  }
+
+  .option-btn.wrong .option-letter { background: var(--red); color: #fff; }
+
+  .option-btn.reveal-correct {
+    border-color: rgba(63,185,80,0.5) !important;
+    background: rgba(63,185,80,0.06) !important;
+  }
+
+  .option-btn:disabled { cursor: not-allowed; }
+
+  /* Feedback */
+  .feedback-box {
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: none;
+    animation: fadeUp 0.25s ease;
+  }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+
+  .feedback-box.correct { background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.3); }
+  .feedback-box.wrong   { background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.3); }
+
+  .feedback-head {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .feedback-box.correct .feedback-head { color: var(--green); }
+  .feedback-box.wrong   .feedback-head { color: var(--red); }
+
+  .feedback-body { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .feedback-body strong { color: var(--text); }
+
+  .next-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 12px;
+    border: none;
+    background: var(--blue);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    display: none;
+  }
+
+  .next-btn:hover { background: #1a5296; }
+  .next-btn.show { display: block; }
+
+  /* Timer */
+  .timer-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .timer-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .timer-bar { height: 100%; background: var(--blue); border-radius: 10px; transition: width 0.1s linear, background 0.5s; }
+  .timer-bar.warning { background: var(--yellow); }
+  .timer-bar.danger  { background: var(--red); }
+  .timer-text { font-size: 13px; color: var(--muted); min-width: 32px; text-align: right; }
+
+  /* ══════════════ RESULTS SCREEN ══════════════ */
+  #screen-results {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+  }
+
+  .results-card {
+    max-width: 700px;
+    width: 100%;
+  }
+
+  .score-hero {
+    text-align: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 48px 40px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .score-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(46,117,182,0.08) 0%, transparent 60%);
+    animation: pulse 4s ease-in-out infinite;
+  }
+
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+  .score-emoji { font-size: 64px; margin-bottom: 16px; }
+
+  .score-pct {
+    font-family: 'Playfair Display', serif;
+    font-size: 80px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .score-label { font-size: 18px; color: var(--muted); margin-bottom: 24px; }
+
+  .score-ring-wrap {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    position: relative;
+  }
+
+  .score-stat { text-align: center; }
+  .score-stat .num { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; }
+  .score-stat .lbl { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .score-stat.correct .num { color: var(--green); }
+  .score-stat.wrong   .num { color: var(--red); }
+  .score-stat.total   .num { color: #58a6ff; }
+
+  /* Breakdown by theme */
+  .breakdown { margin-bottom: 24px; }
+
+  .breakdown-title {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+    padding: 0 4px;
+  }
+
+  .breakdown-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .breakdown-name { flex: 1; font-size: 14px; font-weight: 600; }
+  .breakdown-score { font-size: 14px; font-weight: 700; }
+  .breakdown-bar-wrap { width: 100px; height: 6px; background: var(--border); border-radius: 10px; overflow: hidden; }
+  .breakdown-bar { height: 100%; border-radius: 10px; transition: width 0.6s 0.3s ease; }
+
+  /* Actions */
+  .result-actions { display: flex; gap: 12px; }
+
+  .action-btn {
+    flex: 1;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    text-align: center;
+  }
+
+  .action-btn:hover { background: rgba(255,255,255,0.08); }
+  .action-btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .action-btn.primary:hover { background: #1a5296; }
+
+  /* review list */
+  .review-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 24px;
+  }
+
+  .review-section h3 { font-size: 14px; font-weight: 700; margin-bottom: 16px; color: var(--red); }
+
+  .review-item {
+    border-bottom: 1px solid var(--border);
+    padding: 14px 0;
+  }
+
+  .review-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .review-q { font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+  .review-your { font-size: 13px; color: var(--red); }
+  .review-correct { font-size: 13px; color: var(--green); font-weight: 600; }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .options-grid { grid-template-columns: 1fr; }
+    .q-card { padding: 24px 20px; }
+    .info-grid { grid-template-columns: repeat(2,1fr); }
+    .mode-select { flex-direction: column; }
+    .score-pct { font-size: 60px; }
+    .result-actions { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ START ══════════════ -->
+<div id="screen-start" class="screen active">
+  <div class="start-card">
+    <div class="start-badge">HQC — Secondaire 4</div>
+    <h1>Quiz<br><em>Chapitre 4</em></h1>
+    <p>Le Québec contemporain — Testez vos connaissances sur les événements politiques, économiques et sociaux depuis 1980.</p>
+
+    <div class="info-grid">
+      <div class="info-item"><div class="val">44</div><div class="lbl">Questions</div></div>
+      <div class="info-item"><div class="val">4</div><div class="lbl">Thèmes</div></div>
+      <div class="info-item"><div class="val">3</div><div class="lbl">Niveaux</div></div>
+      <div class="info-item"><div class="val">30s</div><div class="lbl">Par question</div></div>
+    </div>
+
+    <div class="mode-select">
+      <div class="mode-card selected" data-mode="normal" onclick="selectMode(this)">
+        <div class="mode-icon">📝</div>
+        <div class="mode-name">Normal</div>
+        <div class="mode-desc">Feedback immédiat</div>
+      </div>
+      <div class="mode-card" data-mode="exam" onclick="selectMode(this)">
+        <div class="mode-icon">🎓</div>
+        <div class="mode-name">Examen</div>
+        <div class="mode-desc">Résultats à la fin</div>
+      </div>
+      <div class="mode-card" data-mode="timed" onclick="selectMode(this)">
+        <div class="mode-icon">⏱️</div>
+        <div class="mode-name">Chrono</div>
+        <div class="mode-desc">30 sec par question</div>
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <button class="filter-btn active" data-theme="all" onclick="selectFilter(this)">🌐 Tous les thèmes</button>
+      <button class="filter-btn" data-theme="politique" onclick="selectFilter(this)">🏛️ Politique (15)</button>
+      <button class="filter-btn" data-theme="autochtone" onclick="selectFilter(this)">🦅 Autochtones (10)</button>
+      <button class="filter-btn" data-theme="economie" onclick="selectFilter(this)">💼 Économie (11)</button>
+      <button class="filter-btn" data-theme="autres" onclick="selectFilter(this)">🌿 Autres (8)</button>
+    </div>
+
+    <button class="start-btn" onclick="startQuiz()">Commencer le Quiz →</button>
+  </div>
+</div>
+
+<!-- ══════════════ QUIZ ══════════════ -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-header">
+    <div class="quiz-header-inner">
+      <button class="quit-btn" onclick="quitQuiz()" title="Quitter">✕</button>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+      </div>
+      <div class="quiz-counter">Q <strong id="q-current">1</strong> / <span id="q-total">40</span></div>
+      <div class="quiz-score-badge">✓ <span id="live-score">0</span></div>
+    </div>
+  </div>
+
+  <div class="q-container">
+    <!-- Timer (hidden in non-timed) -->
+    <div class="timer-row" id="timer-row" style="display:none">
+      <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+      <div class="timer-text" id="timer-text">30</div>
+    </div>
+
+    <div class="q-card" id="q-card">
+      <div>
+        <span class="theme-tag" id="q-theme-tag"></span>
+        <span class="diff-badge" id="q-diff-badge"></span>
+      </div>
+      <div class="q-text" id="q-text"></div>
+    </div>
+
+    <div class="options-grid" id="options-grid"></div>
+
+    <div class="feedback-box" id="feedback-box">
+      <div class="feedback-head" id="feedback-head"></div>
+      <div class="feedback-body" id="feedback-body"></div>
+    </div>
+
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Question suivante →</button>
+  </div>
+</div>
+
+<!-- ══════════════ RESULTS ══════════════ -->
+<div id="screen-results" class="screen">
+  <div class="results-card">
+    <div class="score-hero">
+      <div class="score-emoji" id="res-emoji">🎉</div>
+      <div class="score-pct" id="res-pct">0%</div>
+      <div class="score-label" id="res-label"></div>
+      <div class="score-ring-wrap">
+        <div class="score-stat correct"><div class="num" id="res-correct">0</div><div class="lbl">✓ Correctes</div></div>
+        <div class="score-stat wrong"><div class="num" id="res-wrong">0</div><div class="lbl">✗ Erronées</div></div>
+        <div class="score-stat total"><div class="num" id="res-total">0</div><div class="lbl">Total</div></div>
+      </div>
+    </div>
+
+    <div class="breakdown">
+      <div class="breakdown-title">Résultats par thème</div>
+      <div id="breakdown-rows"></div>
+    </div>
+
+    <div class="result-actions">
+      <button class="action-btn" onclick="showStart()">← Retour</button>
+      <button class="action-btn primary" onclick="restartQuiz()">Recommencer</button>
+    </div>
+
+    <div class="review-section" id="review-section" style="display:none">
+      <h3>❌ Questions à réviser</h3>
+      <div id="review-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════ ALL QUESTIONS ═══════════════════════
+const ALL_QUESTIONS = [
+  // POLITIQUE (14) — facile : 1-8, moyen : 9-14
+  {id:1,  theme:'politique', diff:'facile', q:"Lors du référendum de 1980, avec quel pourcentage la population québécoise a-t-elle rejeté la souveraineté-association ?", opts:["A) 49,42 %","B) 54,6 %","C) 59,56 %","D) 64,3 %"], rep:2, explain:"Le NON l'a emporté à 59,56 % contre 40,44 % pour le OUI lors du référendum du 20 mai 1980."},
+  {id:2,  theme:'politique', diff:'facile', q:"Quel concept René Lévesque défendait-il lors du référendum de 1980 ?", opts:["A) L'indépendance totale du Québec","B) La souveraineté-association","C) Le fédéralisme asymétrique","D) La confédération renouvelée"], rep:1, explain:"La souveraineté-association visait l'indépendance politique tout en conservant un lien économique avec le Canada."},
+  {id:3,  theme:'politique', diff:'facile', q:"Qu'est-ce que la « Nuit des longs couteaux » ?", opts:["A) Le soir du vote référendaire de 1995","B) La réunion secrète de Trudeau avec 9 premiers ministres pour rapatrier la Constitution sans le Québec","C) La nuit suivant la signature du lac Meech","D) Le sommet de Charlottetown de 1992"], rep:1, explain:"Dans la nuit du 4 novembre 1981, Trudeau a tenu une réunion secrète avec 9 premiers ministres pendant que René Lévesque dormait à son hôtel."},
+  {id:4,  theme:'politique', diff:'facile', q:"En quelle année la Loi constitutionnelle a-t-elle été officiellement signée ?", opts:["A) 1980","B) 1981","C) 1982","D) 1987"], rep:2, explain:"La Loi constitutionnelle a été signée le 17 avril 1982 entre Trudeau et la reine Élisabeth II, sans représentant québécois."},
+  {id:5,  theme:'politique', diff:'facile', q:"Quel article de la Loi constitutionnelle de 1982 reconnaît les droits ancestraux des peuples autochtones ?", opts:["A) Article 15","B) Article 23","C) Article 35","D) Article 52"], rep:2, explain:"L'article 35 de la Loi constitutionnelle de 1982 reconnaît les droits existants ancestraux ou issus de traités des peuples autochtones."},
+  {id:6,  theme:'politique', diff:'facile', q:"Pourquoi l'Accord du lac Meech a-t-il échoué en 1990 ?", opts:["A) Le Québec a refusé de signer","B) Pierre Trudeau s'y est opposé","C) Le Manitoba et Terre-Neuve n'ont pas ratifié dans les délais","D) Un référendum pancanadien l'a rejeté"], rep:2, explain:"Les assemblées législatives du Manitoba et de Terre-Neuve n'ont pas adopté l'accord avant la date limite de juin 1990."},
+  {id:7,  theme:'politique', diff:'facile', q:"Quelle commission Robert Bourassa a-t-il créée après l'échec du lac Meech ?", opts:["A) La Commission Laurendeau-Dunton","B) La Commission Bélanger-Campeau","C) La Commission Bouchard-Taylor","D) La Commission Allaire"], rep:1, explain:"La Commission Bélanger-Campeau a été créée en 1990 pour étudier l'avenir politique et constitutionnel du Québec."},
+  {id:8,  theme:'politique', diff:'facile', q:"Quel a été le résultat du référendum sur l'Accord de Charlottetown (1992) ?", opts:["A) Accepté par les Québécois, rejeté par le reste du Canada","B) Rejeté par 56,7 % des Québécois et 54,6 % des Canadiens","C) Accepté à 51 % par les Canadiens","D) Rejeté uniquement au Québec"], rep:1, explain:"L'Accord de Charlottetown a été soumis à un référendum pancanadien le 26 octobre 1992 et rejeté par la majorité dans les deux cas."},
+  {id:9,  theme:'politique', diff:'moyen', q:"Qui était Premier ministre du Québec lors du deuxième référendum en 1995 ?", opts:["A) René Lévesque","B) Lucien Bouchard","C) Bernard Landry","D) Jacques Parizeau"], rep:3, explain:"Jacques Parizeau, chef du Parti québécois, était Premier ministre du Québec lors du référendum du 30 octobre 1995."},
+  {id:10, theme:'politique', diff:'moyen', q:"Quel a été le résultat du référendum de 1995 sur la souveraineté du Québec ?", opts:["A) 51 % OUI — rejeté par le fédéral","B) 50,58 % NON — victoire très serrée du camp du NON","C) 59,56 % NON — victoire claire","D) 54,6 % OUI — victoire du OUI"], rep:1, explain:"Le NON l'a emporté de justesse avec 50,58 % contre 49,42 % pour le OUI, dans l'un des référendums les plus serrés de l'histoire du Canada."},
+  {id:11, theme:'politique', diff:'moyen', q:"Qui a fondé le Bloc québécois et en quelle année ?", opts:["A) Jacques Parizeau, 1994","B) René Lévesque, 1980","C) Lucien Bouchard, 1990","D) Bernard Landry, 1996"], rep:2, explain:"Lucien Bouchard a fondé le Bloc québécois en 1990 après l'échec de l'Accord du lac Meech, dont il était déçu en tant que ministre fédéral."},
+  {id:12, theme:'politique', diff:'moyen', q:"Quelle loi fédérale a été adoptée après 1995 pour encadrer tout futur référendum au Québec ?", opts:["A) La Loi constitutionnelle de 1999","B) La Loi sur la clarté référendaire","C) La Loi sur la société distincte","D) La Charte des valeurs québécoises"], rep:1, explain:"La Loi sur la clarté référendaire (Loi C-20), adoptée en 2000 sous Jean Chrétien, exige qu'une question référendaire soit claire et que la majorité requise soit nettement démontrée."},
+  {id:13, theme:'politique', diff:'moyen', q:"Qu'est-ce que le « love-in » de Montréal (1995) ?", opts:["A) Un concert rock pour la jeunesse souverainiste","B) Un rassemblement de partisans du OUI à Montréal","C) Un grand rassemblement pancanadien de partisans du NON à Montréal","D) Une manifestation autochtone contre le référendum"], rep:2, explain:"Quelques jours avant le vote, des Canadiens de tout le pays ont convergé à Montréal pour montrer leur attachement au Québec et soutenir le NON."},
+  {id:14, theme:'politique', diff:'moyen', q:"Quelle motion Stephen Harper a-t-il proposée en faveur du Québec ?", opts:["A) La reconnaissance du Québec comme État associé","B) L'octroi d'un droit de veto au Québec","C) La reconnaissance de la nation québécoise au sein du Canada","D) L'accord d'un statut de province distincte"], rep:2, explain:"En 2006, Stephen Harper a fait adopter une motion symbolique reconnaissant que les Québécoises et Québécois forment une nation au sein d'un Canada uni."},
+  {id:15, theme:'politique', diff:'difficile', q:"Qu'est-ce que la Loi sur la clarté référendaire (2000) exige pour qu'un référendum sur la sécession d'une province soit reconnu par le gouvernement fédéral ?", opts:["A) Une majorité simple de 50 % + 1 vote, quelle que soit la question posée","B) Une question claire approuvée par le Parlement et une majorité \"claire\" déterminée par le Parlement après le vote","C) L'accord unanime des dix provinces canadiennes avant la tenue du vote","D) Un taux de participation d'au moins 75 % de l'électorat provincial"], rep:1, explain:"Adoptée par Jean Chrétien en réponse au quasi-résultat de 1995, la Loi sur la clarté (C-20) stipule que le Parlement doit d'abord juger si la question est claire, puis, après le vote, si la majorité obtenue est suffisamment nette pour engager des négociations — rejetant explicitement le principe du 50 % + 1."},
+
+  // AUTOCHTONES (10) — facile : 15-20, moyen : 21-24
+  {id:15, theme:'autochtone', diff:'facile', q:"Quelle est la principale cause de la Crise d'Oka en 1990 ?", opts:["A) Le rejet de l'accord du lac Meech par les autochtones","B) Un projet immobilier et l'agrandissement d'un golf sur des terres revendiquées par les Mohawks de Kanesatake","C) La privatisation des terres autochtones par le fédéral","D) Le refus du gouvernement d'accorder le statut d'Indien aux femmes autochtones"], rep:1, explain:"La ville d'Oka souhaitait agrandir un terrain de golf et construire des condos sur un territoire que les Mohawks de Kanesatake revendiquaient comme ancestral."},
+  {id:16, theme:'autochtone', diff:'facile', q:"En quelle date la Crise d'Oka a-t-elle débuté ?", opts:["A) 4 novembre 1981","B) 26 octobre 1992","C) 11 juillet 1990","D) 17 avril 1982"], rep:2, explain:"La crise a débuté le 11 juillet 1990 lorsque la police provinciale a tenté d'enlever des barricades érigées par les Warriors mohawks."},
+  {id:17, theme:'autochtone', diff:'facile', q:"Quel policier a été mortellement blessé lors de la Crise d'Oka ?", opts:["A) Robert Lemay","B) Marcel Lemay","C) Jean-Guy Tremblay","D) Florent Vollant"], rep:1, explain:"Le caporal Marcel Lemay de la Sûreté du Québec a été mortellement atteint lors de l'échange de coups de feu entre policiers et Warriors."},
+  {id:18, theme:'autochtone', diff:'facile', q:"Quelle réserve mohawk a bloqué le pont Mercier en solidarité lors de la Crise d'Oka ?", opts:["A) Kanesatake","B) Akwesasne","C) Kahnawake","D) Wendake"], rep:2, explain:"Les Mohawks de Kahnawake, situés sur la rive-sud de Montréal, ont bloqué le pont Mercier en signe de solidarité avec leurs frères de Kanesatake."},
+  {id:19, theme:'autochtone', diff:'facile', q:"Qu'est-ce que la Paix des Braves (2002) ?", opts:["A) Un accord de paix entre Mohawks et Québec après la crise d'Oka","B) Une entente entre le Québec et les Cris : 70 M$/an pendant 50 ans en échange de l'accès à certaines terres","C) La signature d'un traité de souveraineté pour les Inuits","D) Un accord Canada-Québec sur les droits territoriaux autochtones"], rep:1, explain:"La Paix des Braves, signée en 2002 sous Bernard Landry, prévoit que le Québec verse 70 M$ par an pendant 50 ans aux Cris en échange de l'accès à leurs territoires."},
+  {id:20, theme:'autochtone', diff:'facile', q:"Qu'est-ce que le Nunavut et quand a-t-il été créé ?", opts:["A) Un territoire autochtone créé en 1990 au Manitoba","B) Un territoire inuit autonome créé en 1999, séparé des Territoires du Nord-Ouest","C) Un conseil autochtone créé en 1982 par la Loi constitutionnelle","D) Une réserve crie créée en 2002 suite à la Paix des Braves"], rep:1, explain:"Le Nunavut (« notre terre » en inuktitut) a été créé le 1er avril 1999 comme territoire inuit autonome découpé des Territoires du Nord-Ouest."},
+  {id:21, theme:'autochtone', diff:'moyen', q:"Quel projet de loi fédéral (1985) a accordé le statut d'Indien aux enfants de femmes autochtones ?", opts:["A) Le projet de loi C-15","B) Le projet de loi C-31","C) Le projet de loi C-45","D) Le projet de loi C-51"], rep:1, explain:"Le projet de loi C-31 (1985) a modifié la Loi sur les Indiens pour accorder le statut d'Indien aux enfants des femmes autochtones, même si elles avaient épousé un non-autochtone."},
+  {id:22, theme:'autochtone', diff:'moyen', q:"Sur quel point Mary Coon et Florent Vollant s'entendent-ils dans leurs témoignages sur les pensionnats ?", opts:["A) Les enfants étaient bien traités","B) Les pensionnats visaient à préserver la culture autochtone","C) De mauvais traitements ont été infligés aux enfants dans les pensionnats","D) Les enfants avaient le droit de parler leur langue maternelle"], rep:2, explain:"Les deux témoignages convergent sur le fait que les enfants subissaient des mauvais traitements physiques et culturels dans les pensionnats autochtones."},
+  {id:23, theme:'autochtone', diff:'moyen', q:"Quel a été l'impact de l'article 35 de la Loi constitutionnelle de 1982 sur les revendications autochtones ?", opts:["A) Il a mis fin aux revendications territoriales","B) Il a reconnu leurs droits ancestraux, leur donnant une base légale pour revendiquer leurs territoires","C) Il a accordé l'autonomie politique complète aux nations autochtones","D) Il a interdit toute exploitation des ressources sur les terres autochtones"], rep:1, explain:"La reconnaissance constitutionnelle des droits ancestraux a fourni aux Premières Nations un outil juridique pour défendre leurs territoires, ce qui a intensifié les revendications dans les années 1990."},
+  {id:24, theme:'autochtone', diff:'moyen', q:"Qu'est-ce que le mouvement « Idle No More » réclame principalement ?", opts:["A) L'intégration économique des autochtones dans la société québécoise","B) La souveraineté des Premières Nations et la protection des terres et des eaux","C) La création de nouveaux territoires autochtones autonomes","D) L'abolition des réserves autochtones"], rep:1, explain:"Né en 2012, le mouvement Idle No More mobilise les Premières Nations pour protéger leurs droits souverains et défendre les terres, les eaux et leurs peuples."},
+
+  // ECONOMIE (8) — facile : 25-28, moyen : 29-32
+  {id:25, theme:'economie', diff:'facile', q:"Que signifie l'ALÉNA et en quelle année a-t-il été signé ?", opts:["A) Alliance libérale économique nord-américaine, 1988","B) Accord de libre-échange nord-américain, 1994","C) Association des libreéchangistes nord-américains, 1992","D) Accord de liaison économique nord-américaine, 1989"], rep:1, explain:"L'ALÉNA (Accord de libre-échange nord-américain) a été signé en 1994 entre le Canada, les États-Unis et le Mexique pour favoriser les échanges commerciaux."},
+  {id:26, theme:'economie', diff:'facile', q:"Quel phénomène économique l'ALÉNA a-t-il favorisé au détriment de l'emploi québécois ?", opts:["A) La nationalisation des ressources naturelles","B) La délocalisation d'usines vers le Mexique","C) L'augmentation des droits de douane","D) La fermeture des frontières commerciales"], rep:1, explain:"Les avantages salariales du Mexique ont incité plusieurs usines à s'y relocaliser, entraînant des pertes d'emplois au Québec et au Canada."},
+  {id:27, theme:'economie', diff:'facile', q:"Qu'est-ce que le néolibéralisme recommande concernant le rôle de l'État ?", opts:["A) Augmenter les programmes sociaux et nationaliser les grandes entreprises","B) Réduire l'intervention de l'État dans l'économie et privatiser les sociétés d'État","C) Instaurer une économie planifiée par le gouvernement","D) Augmenter les impôts pour financer l'État-providence"], rep:1, explain:"Le néolibéralisme prône le libre marché, la réduction de la taille de l'État et la privatisation d'entreprises publiques pour stimuler la croissance économique."},
+  {id:28, theme:'economie', diff:'facile', q:"Quelle était la situation économique du Québec au début des années 1980 ?", opts:["A) Forte croissance économique grâce aux exportations","B) Récession avec taux de chômage d'environ 14 % et taux hypothécaires de 20 %","C) Surplus budgétaire permettant d'étendre l'État-providence","D) Boom de la construction résidentielle"], rep:1, explain:"Le Québec des années 1980 connaissait une grave récession : chômage à ~14 %, taux hypothécaires historiques de 20 %, ralentissement de la construction."},
+  {id:29, theme:'economie', diff:'moyen', q:"Qu'est-ce que l'altermondialisme s'oppose principalement ?", opts:["A) À l'immigration de travailleurs étrangers","B) À la mondialisation économique et aux inégalités sociales qu'elle engendre","C) Au libre-échange entre provinces canadiennes","D) À la privatisation des services de santé uniquement"], rep:1, explain:"L'altermondialisme dénonce les effets négatifs de la mondialisation libérale (inégalités, délocalisations, destruction environnementale) et propose des alternatives."},
+  {id:30, theme:'economie', diff:'moyen', q:"Quelle loi a été adoptée en 1996 pour réduire les inégalités salariales entre hommes et femmes ?", opts:["A) La Loi sur l'équité en emploi","B) La Loi sur le patrimoine familial","C) La Loi sur l'équité salariale","D) La Loi sur la parité en entreprise"], rep:2, explain:"La Loi sur l'équité salariale (1996), adoptée à l'unanimité, oblige les entreprises de 50 employés et plus à verser un salaire égal pour des emplois à prédominance féminine."},
+  {id:31, theme:'economie', diff:'moyen', q:"Quelle mesure l'État québécois a-t-il adoptée en 1997 pour favoriser la conciliation travail-famille ?", opts:["A) L'instauration du salaire minimum","B) La création des Centres de la petite enfance (CPE) subventionnés","C) L'adoption du RQAP","D) La légalisation du travail à temps partiel"], rep:1, explain:"En 1997, le gouvernement Bouchard a créé les CPE (Centres de la petite enfance) avec des places subventionnées à tarif réduit pour faciliter l'accès des parents au marché du travail."},
+  {id:32, theme:'economie', diff:'moyen', q:"Comment la mondialisation a-t-elle influencé le développement économique du Québec ?", opts:["A) Le Québec a fermé ses frontières aux produits étrangers","B) Le Québec a développé des secteurs innovateurs (aérospatiale, IA, numérique) pour demeurer compétitif","C) Le Québec s'est spécialisé uniquement dans les ressources naturelles","D) Le Québec a abandonné ses industries pour devenir un importateur net"], rep:1, explain:"Face à la concurrence internationale, le Québec a misé sur des secteurs à haute valeur ajoutée comme l'aérospatiale (Bombardier), le jeu vidéo (Ubisoft) et l'intelligence artificielle."},
+  {id:33, theme:'economie', diff:'facile', q:"Où observe-t-on principalement le phénomène de dévitalisation des régions au Québec ?", opts:["A) Dans les grandes métropoles comme Montréal et Québec","B) Dans les régions ressources et les villes mono-industrielles éloignées des centres urbains","C) Dans les banlieues des grandes villes en croissance rapide","D) Dans les régions frontalières avec les États-Unis"], rep:1, explain:"La dévitalisation touche particulièrement les régions ressources (Gaspésie, Côte-Nord, Abitibi) et les villes mono-industrielles comme Murdochville ou Schefferville, dépendantes d'une seule industrie (mines, forêt, pêche)."},
+  {id:34, theme:'economie', diff:'moyen', q:"Qu'est-ce que la dévitalisation des régions et quelle est son origine principale ?", opts:["A) Une croissance rapide des villes de région causée par l'immigration internationale","B) Le déclin démographique et économique causé par la fermeture d'entreprises mono-industrielles et les fluctuations des marchés des ressources naturelles","C) La concentration des services publics dans les villages ruraux","D) L'augmentation du prix des terres agricoles qui chasse les jeunes agriculteurs"], rep:1, explain:"La dévitalisation résulte de la dépendance à une seule industrie (mine, forêt, pêche). Quand l'entreprise ferme ou réduit ses activités — souvent à cause des fluctuations du marché mondial — la communauté perd sa raison d'être économique, entraînant chômage et départ de la population."},
+  {id:35, theme:'economie', diff:'moyen', q:"Quelle est la principale conséquence politique et sociale de la dévitalisation des régions au Québec ?", opts:["A) Une augmentation des taxes foncières dans les régions touchées","B) Un exode rural vers les villes qui diminue la population des régions et réduit leur poids politique à l'Assemblée nationale","C) Une hausse de l'immigration internationale dans les villages dévitalisés","D) La création de nouvelles municipalités pour remplacer celles qui ferment"], rep:1, explain:"La fermeture des entreprises force les travailleurs à quitter leur région pour les villes (exode rural). Cette diminution de la population réduit le nombre de circonscriptions électorales en région, donc leur représentation et leur influence à l'Assemblée nationale — c'est la perte du poids politique."},
+
+  // AUTRES (8) — moyen : 33-36, difficile : 37-40
+  {id:33, theme:'autres', diff:'moyen', q:"Qu'est-ce que la dénatalité entraîne comme principale conséquence pour le Québec ?", opts:["A) Une augmentation du nombre d'étudiants dans les universités","B) Un vieillissement de la population et un manque de main-d'œuvre","C) Une diminution du nombre d'immigrants","D) Une réduction des dépenses en santé"], rep:1, explain:"La baisse du taux de natalité entraîne un vieillissement accéléré de la population québécoise, créant une pénurie de main-d'œuvre et une pression financière sur les services de santé et les régimes de retraite."},
+  {id:34, theme:'autres', diff:'moyen', q:"Quel accord de 1991 a permis au Québec de sélectionner ses immigrants selon ses propres critères ?", opts:["A) L'Accord de Charlottetown","B) La Loi sur l'immigration québécoise","C) L'Accord Canada-Québec relatif à l'immigration","D) L'Entente Lévesque-Trudeau"], rep:2, explain:"L'Accord Canada-Québec (1991) confère au Québec la responsabilité exclusive de l'accueil et de l'intégration des immigrants sur son territoire, tout en lui permettant de les sélectionner selon ses propres critères."},
+  {id:35, theme:'autres', diff:'moyen', q:"En quelle année le Québec a-t-il légalisé le mariage civil entre conjoints de même sexe ?", opts:["A) 1999","B) 2002","C) 2005","D) 2009"], rep:1, explain:"En 2002, l'Assemblée nationale du Québec a adopté la Loi instituant l'union civile et établissant de nouvelles règles de filiation, incluant la reconnaissance du mariage entre conjoints de même sexe."},
+  {id:36, theme:'autres', diff:'moyen', q:"Qu'est-ce que le Plan Nord (2011) vise principalement ?", opts:["A) La protection du territoire naturel québécois au nord du 49e parallèle","B) L'exploitation des ressources minérales au nord du 49e parallèle","C) La création de réserves autochtones dans le nord du Québec","D) Le développement de parcs éoliens dans le nord du Québec"], rep:1, explain:"Présenté par Jean Charest en mai 2011, le Plan Nord est un projet de développement économique visant à exploiter les nombreuses ressources minérales et énergétiques situées au nord du 49e parallèle."},
+  {id:37, theme:'autres', diff:'difficile', q:"Quelle loi adoptée en 1986 oblige les entreprises forestières à reboiser après exploitation ?", opts:["A) La Loi sur les mines","B) La Loi sur la qualité de l'environnement","C) La Loi sur les forêts","D) La Loi sur la protection du territoire agricole"], rep:2, explain:"La Loi sur les forêts (1986) a instauré l'obligation pour les entreprises forestières de replanter les arbres après l'exploitation, afin de régénérer les forêts québécoises."},
+  {id:38, theme:'autres', diff:'difficile', q:"Qu'est-ce que la Loi sur la laïcité de l'État (loi 21, 2019) interdit principalement ?", opts:["A) La construction de lieux de culte religieux près des écoles","B) Le port de signes religieux aux employés de l'État en position d'autorité durant leurs fonctions","C) Les prières dans les bâtiments gouvernementaux","D) L'enseignement de la religion dans les écoles publiques"], rep:1, explain:"La loi 21 interdit le port de signes religieux (ex. : hidjab, kippa, croix) aux personnes en position d'autorité coercitive comme les enseignants, juges et policiers."},
+  {id:39, theme:'autres', diff:'difficile', q:"Comment la loi 86 (1993) a-t-elle modifié la loi 101 (1977) sur l'affichage commercial ?", opts:["A) Elle a rendu l'affichage unilingue français obligatoire partout","B) Elle a permis l'affichage bilingue avec prédominance visuelle du français","C) Elle a aboli toute restriction sur la langue d'affichage","D) Elle a étendu l'obligation du français à l'affichage intérieur"], rep:1, explain:"La loi 86 a assoupli la loi 101 en permettant l'affichage bilingue, mais a exigé que le français soit nettement prédominant (plus grand que l'autre langue)."},
+  {id:40, theme:'autres', diff:'difficile', q:"Quel est le principal secteur émetteur de gaz à effet de serre (GES) au Québec selon les données de 2018 ?", opts:["A) L'industrie","B) L'agriculture","C) Les transports","D) Le chauffage résidentiel"], rep:2, explain:"En 2018, le secteur des transports représentait 44,8 % des émissions de GES au Québec, loin devant l'industrie (30 %) et le résidentiel/commercial (10,1 %)."}
+];
+
+// ═══════════════════════ STATE ═══════════════════════
+let mode = 'normal';
+let filterTheme = 'all';
+let questions = [];
+let current = 0;
+let score = 0;
+let answered = [];
+let timer = null;
+let timeLeft = 30;
+
+// ═══════════════════════ SETUP ═══════════════════════
+function selectMode(el) {
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  mode = el.dataset.mode;
+}
+
+function selectFilter(el) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  filterTheme = el.dataset.theme;
+}
+
+function startQuiz() {
+  let pool = filterTheme === 'all' ? [...ALL_QUESTIONS] : ALL_QUESTIONS.filter(q => q.theme === filterTheme);
+  pool.sort(() => Math.random() - 0.5);
+  questions = pool;
+  current = 0;
+  score = 0;
+  answered = [];
+
+  document.getElementById('q-total').textContent = questions.length;
+  document.getElementById('live-score').textContent = '0';
+  showScreen('screen-quiz');
+  renderQuestion();
+}
+
+function quitQuiz() {
+  if (confirm('Quitter le quiz ?')) { clearTimerFn(); showStart(); }
+}
+
+// ═══════════════════════ QUIZ LOGIC ═══════════════════════
+const THEME_META = {
+  politique:  { label: '🏛️ Politique & Constitution', color: '#2e75b6' },
+  autochtone: { label: '🦅 Autochtones', color: '#4a8c2a' },
+  economie:   { label: '💼 Économie', color: '#c97a00' },
+  autres:     { label: '🌿 Autres thèmes', color: '#9b3db8' }
+};
+
+function renderQuestion() {
+  if (current >= questions.length) { showResults(); return; }
+  const q = questions[current];
+
+  // Progress
+  const pct = (current / questions.length) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('q-current').textContent = current + 1;
+
+  // Theme tag
+  const tm = THEME_META[q.theme];
+  const tag = document.getElementById('q-theme-tag');
+  tag.textContent = tm.label;
+  tag.className = `theme-tag ${q.theme}`;
+
+  // Diff badge
+  const db = document.getElementById('q-diff-badge');
+  const diffMap = { facile: '✦ Facile', moyen: '✦✦ Moyen', difficile: '✦✦✦ Difficile' };
+  db.textContent = diffMap[q.diff];
+  db.className = `diff-badge ${q.diff}`;
+
+  // Question text
+  document.getElementById('q-text').textContent = q.q;
+
+  // Options
+  const grid = document.getElementById('options-grid');
+  grid.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-letter">${letters[i]}</span><span>${opt.slice(3)}</span>`;
+    btn.onclick = () => selectAnswer(i);
+    grid.appendChild(btn);
+  });
+
+  // Reset feedback
+  const fb = document.getElementById('feedback-box');
+  fb.style.display = 'none';
+  fb.className = 'feedback-box';
+  document.getElementById('next-btn').classList.remove('show');
+
+  // Timer
+  if (mode === 'timed') {
+    document.getElementById('timer-row').style.display = 'flex';
+    startTimer();
+  } else {
+    document.getElementById('timer-row').style.display = 'none';
+  }
+
+  // Animate card
+  const card = document.getElementById('q-card');
+  card.style.animation = 'none';
+  requestAnimationFrame(() => { card.style.animation = 'slideIn 0.3s ease'; });
+}
+
+function selectAnswer(chosen) {
+  clearTimerFn();
+  const q = questions[current];
+  const correct = chosen === q.rep;
+  if (correct) score++;
+  document.getElementById('live-score').textContent = score;
+
+  answered.push({ q, chosen, correct });
+
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.rep) btn.classList.add('correct');
+    else if (i === chosen && !correct) btn.classList.add('wrong');
+  });
+
+  if (mode !== 'exam') {
+    const fb = document.getElementById('feedback-box');
+    fb.style.display = 'block';
+    fb.className = `feedback-box ${correct ? 'correct' : 'wrong'}`;
+    document.getElementById('feedback-head').innerHTML = correct
+      ? '✅ Bonne réponse !'
+      : `❌ Incorrect — La bonne réponse était <strong>${['A','B','C','D'][q.rep]}</strong>`;
+    document.getElementById('feedback-body').innerHTML = `<strong>Explication :</strong> ${q.explain}`;
+  }
+
+  document.getElementById('next-btn').classList.add('show');
+  document.getElementById('next-btn').textContent = current < questions.length - 1 ? 'Question suivante →' : 'Voir les résultats →';
+}
+
+function nextQuestion() {
+  clearTimerFn();
+  current++;
+  renderQuestion();
+}
+
+// Timer
+function startTimer() {
+  clearTimerFn();
+  timeLeft = 30;
+  updateTimerUI();
+  timer = setInterval(() => {
+    timeLeft--;
+    updateTimerUI();
+    if (timeLeft <= 0) { clearTimerFn(); selectAnswer(-1); }
+  }, 1000);
+}
+
+function updateTimerUI() {
+  const pct = (timeLeft / 30) * 100;
+  const bar = document.getElementById('timer-bar');
+  bar.style.width = pct + '%';
+  bar.className = 'timer-bar' + (timeLeft <= 5 ? ' danger' : timeLeft <= 10 ? ' warning' : '');
+  document.getElementById('timer-text').textContent = timeLeft;
+}
+
+function clearTimerFn() { if (timer) { clearInterval(timer); timer = null; } }
+
+// ═══════════════════════ RESULTS ═══════════════════════
+function showResults() {
+  clearTimerFn();
+  const total = answered.length;
+  const correct = answered.filter(a => a.correct).length;
+  const pct = Math.round(correct / total * 100);
+
+  const emoji = pct >= 80 ? '🏆' : pct >= 60 ? '💪' : pct >= 40 ? '📚' : '😅';
+  const label = pct >= 80 ? 'Excellent travail !' : pct >= 60 ? 'Bon résultat !' : pct >= 40 ? 'Bonne continuité !' : 'À réviser davantage';
+
+  document.getElementById('res-emoji').textContent = emoji;
+  document.getElementById('res-pct').textContent = pct + '%';
+  document.getElementById('res-pct').style.color = pct >= 80 ? '#3fb950' : pct >= 60 ? '#d29922' : '#f85149';
+  document.getElementById('res-label').textContent = label;
+  document.getElementById('res-correct').textContent = correct;
+  document.getElementById('res-wrong').textContent = total - correct;
+  document.getElementById('res-total').textContent = total;
+
+  // Breakdown by theme
+  const themes = ['politique','autochtone','economie','autres'];
+  const brows = document.getElementById('breakdown-rows');
+  brows.innerHTML = '';
+  themes.forEach(t => {
+    const ta = answered.filter(a => a.q.theme === t);
+    if (!ta.length) return;
+    const tc = ta.filter(a => a.correct).length;
+    const tp = Math.round(tc / ta.length * 100);
+    const tm = THEME_META[t];
+    const row = document.createElement('div');
+    row.className = 'breakdown-row';
+    row.innerHTML = `
+      <div class="breakdown-name">${tm.label}</div>
+      <div class="breakdown-bar-wrap"><div class="breakdown-bar" style="width:0%;background:${tm.color}" data-w="${tp}"></div></div>
+      <div class="breakdown-score" style="color:${tm.color}">${tc}/${ta.length}</div>
+    `;
+    brows.appendChild(row);
+  });
+
+  setTimeout(() => {
+    document.querySelectorAll('.breakdown-bar').forEach(b => b.style.width = b.dataset.w + '%');
+  }, 200);
+
+  // Wrong answers review
+  const wrong = answered.filter(a => !a.correct);
+  const rev = document.getElementById('review-section');
+  if (wrong.length && mode !== 'exam') {
+    rev.style.display = 'block';
+    const list = document.getElementById('review-list');
+    list.innerHTML = '';
+    wrong.forEach(a => {
+      const letters = ['A','B','C','D'];
+      const d = document.createElement('div');
+      d.className = 'review-item';
+      d.innerHTML = `
+        <div class="review-q">${a.q.q}</div>
+        <div class="review-your">✗ Votre réponse : ${a.chosen >= 0 ? letters[a.chosen] + ') ' + a.q.opts[a.chosen].slice(3) : 'Temps écoulé'}</div>
+        <div class="review-correct">✓ Bonne réponse : ${letters[a.q.rep]}) ${a.q.opts[a.q.rep].slice(3)}</div>
+      `;
+      list.appendChild(d);
+    });
+  } else {
+    rev.style.display = 'none';
+  }
+
+  showScreen('screen-results');
+}
+
+function restartQuiz() { startQuiz(); }
+
+function showStart() {
+  clearTimerFn();
+  showScreen('screen-start');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('screen-quiz').classList.contains('active')) return;
+  const map = { '1': 0, '2': 1, '3': 2, '4': 3, 'a': 0, 'b': 1, 'c': 2, 'd': 3 };
+  const key = e.key.toLowerCase();
+  if (map[key] !== undefined) {
+    const btns = document.querySelectorAll('.option-btn');
+    if (btns.length && !btns[0].disabled) selectAnswer(map[key]);
+  }
+  if (e.key === 'Enter') {
+    const nb = document.getElementById('next-btn');
+    if (nb.classList.contains('show')) nextQuestion();
+  }
+});
+</script>
+</body>
+</html>
